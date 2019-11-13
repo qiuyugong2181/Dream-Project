@@ -1,7 +1,8 @@
 # Dream-Project
 
 Group member: 
-Qiuyu Gong 
+
+QIUYU GONG 
 YICHUN LUO
 XIN XIONG 
 CHENGXI CAI
