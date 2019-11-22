@@ -30,9 +30,10 @@ library(DESeq2)
 library(stringr)
 library(tidyr)
 library(dplyr)
+anoSC21=anoSC2
 anoSC2=data.frame(anoSC2 %>% drop_na(Group))
 esetSC2=data.frame(esetSC2)
-#PREPROCESS DATA 
+#PREPROCESS DATA
 control_T1=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='Control' &anoSC2['GA']<=25,]['SampleID']))]
 control_T2=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='Control' &anoSC2['GA']>25,]['SampleID']))]
 sPTD_T1=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='sPTD' &anoSC2['GA']<=25,]['SampleID']))]
@@ -47,11 +48,9 @@ PPROM_T2=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='PPROM' &anoSC2['GA']>25,]['
 install.packages("statmod")
 library(limma)
 library(statmod)
-
 ```
 
 ```{r}
-
 T1_Control_vs_sPTD=as.matrix(cbind(control_T1,sPTD_T1))
 M1_anno_Control<-data.frame(Sample_id =colnames(control_T1),Group='Control')
 M1_anno_sPTD<-data.frame(Sample_id =colnames(sPTD_T1),Group='sPTD')
@@ -79,8 +78,10 @@ colnames(design) <- c("Control","ControlvssPTD")
 eset <- ExpressionSet(assayData=T1_Control_vs_sPTD)
 fit <- lmFit(eset, design)
 fit <- eBayes(fit)
-sPTD_top100_T2<-topTable(fit, coef="ControlvssPTD", sort = "logFC"，number=100, adjust="BH")
+sPTD_top100_T2<-topTable(fit, coef="ControlvssPTD", sort = "logFC"，number=183, adjust="BH")
+sPTD_top100_T2=sPTD_top100_T2[sPTD_top100_T2$P.Value<0.05,]
 sPTD_top100_T2<-rownames(sPTD_top100_T2)
+sPTD_top100_T2
 ```
 
 ```{r}
@@ -95,35 +96,26 @@ colnames(design) <- c("Control","ControlvsPPROM")
 eset <- ExpressionSet(assayData=T1_Control_vs_PPROM)
 fit <- lmFit(eset, design)
 fit <- eBayes(fit)
-PPROM_top100_T2<-topTable(fit, coef="ControlvsPPROM", sort = "logFC"，number=100, adjust="BH")
-PPROM_top100_T2<-rownames(PPROM_top100_T2)
-PPROM_top100_T2
+PPROM_data=topTable(fit, coef="ControlvsPPROM", sort = "logFC",number=150,adjust='BH',confint = 0.95)
+PPROM_data=PPROM_data[PPROM_data$P.Value<0.05,]
+PPROM_data=rownames(PPROM_data)
+
 ```
 
 ```{r}
-length(intersect(PPROM_top100_T2,sPTD_top100_T2))
-control_T2[sPTD_top100_T2,]
-sPTD_T2[sPTD_top100_T2,]
-write.table(control_T2[PPROM_top100_T2,],'control_vs PPROM_T2_top100.csv',sep=',')
-write.table(PPROM_T2[PPROM_top100_T2,],'PPROM_T2_top100.csv',sep=',')
+testset=esetSC2[,anoSC21[anoSC21['Train']=='0'][1:304]]
 ```
-
 
 ```{r}
-T1_Control_vs_PPROM=as.matrix(cbind(control_T2,PPROM_T2))
-M1_anno_Control<-data.frame(Sample_id =colnames(control_T2),Group='Control')
-M1_anno_PPROM<-data.frame(Sample_id =colnames(PPROM_T2),Group='PPROM')
-M1_anno<-rbind(M1_anno_Control,M1_anno_PPROM)
 
-Group <- factor(M1_anno$Group, levels=c("Control","PPROM"))
-design <- model.matrix(~Group)
-colnames(design) <- c("Control","ControlvsPPROM")
-eset <- ExpressionSet(assayData=T1_Control_vs_PPROM)
-fit <- lmFit(eset, design)
-fit <- eBayes(fit)
-topTable(fit, coef="ControlvsPPROM", sort = "logFC"，number=100,adjust='BH')
-
+control_T2[PPROM_data,]
+sPTD_T2[PPROM_data,]
+testset[PPROM_data,]
+write.table(control_T2[PPROM_data,],'control_data_PPROM.csv',sep=',')
+write.table(PPROM_T2[PPROM_data,],'disease_data_PPROM.csv',sep=',')
+write.table(testset[PPROM_data,],'test_set_data_PPROM.csv',sep=',')
 ```
+
 
 
 
