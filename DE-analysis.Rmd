@@ -64,7 +64,8 @@ eset <- ExpressionSet(assayData=T1_Control_vs_sPTD)
 fit <- lmFit(eset, design)
 fit <- eBayes(fit)
 sPTD_top100_T2<-topTable(fit, coef="ControlvssPTD", sort = "logFC"，number=145, adjust="BH")
-#filter our the p value that hihger than 0.05
+
+#filter out the p value that hihger than 0.05
 sPTD_top100_T2=sPTD_top100_T2[sPTD_top100_T2$P.Value<0.05,]
 sPTD_data=rownames(sPTD_top100_T2)
 ```
@@ -83,7 +84,8 @@ eset <- ExpressionSet(assayData=T1_Control_vs_PPROM)
 fit <- lmFit(eset, design)
 fit <- eBayes(fit)
 PPROM_data=topTable(fit, coef="ControlvsPPROM", sort = "logFC",number=143,adjust='BH',confint = 0.95)
-#filter our the p value that hihger than 0.05
+
+#filter out the p value that hihger than 0.05
 PPROM_data=PPROM_data[PPROM_data$P.Value<0.05,]
 PPROM_data=rownames(PPROM_data)
 
