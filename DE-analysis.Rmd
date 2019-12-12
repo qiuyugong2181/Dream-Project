@@ -33,14 +33,13 @@ library(dplyr)
 anoSC21=anoSC2
 anoSC2=data.frame(anoSC2 %>% drop_na(Group))
 esetSC2=data.frame(esetSC2)
-#PREPROCESS DATA
+#PREPROCESS DATA: set threshold =25 to seperate the two time point
 control_T1=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='Control' &anoSC2['GA']<=25,]['SampleID']))]
 control_T2=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='Control' &anoSC2['GA']>25,]['SampleID']))]
 sPTD_T1=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='sPTD' &anoSC2['GA']<=25,]['SampleID']))]
 sPTD_T2=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='sPTD' &anoSC2['GA']>25,]['SampleID']))]
 PPROM_T1=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='PPROM' &anoSC2['GA']<=25,]['SampleID']))]
 PPROM_T2=esetSC2[, unlist(c(anoSC2[anoSC2['Group']=='PPROM' &anoSC2['GA']>25,]['SampleID']))]
-
 ```
 
 
@@ -50,24 +49,10 @@ library(limma)
 library(statmod)
 ```
 
-```{r}
-T1_Control_vs_sPTD=as.matrix(cbind(control_T1,sPTD_T1))
-M1_anno_Control<-data.frame(Sample_id =colnames(control_T1),Group='Control')
-M1_anno_sPTD<-data.frame(Sample_id =colnames(sPTD_T1),Group='sPTD')
-M1_anno<-rbind(M1_anno_Control,M1_anno_sPTD)
 
-Group <- factor(M1_anno$Group, levels=c("Control","sPTD"))
-design <- model.matrix(~Group)
-colnames(design) <- c("Control","ControlvssPTD")
-eset <- ExpressionSet(assayData=T1_Control_vs_sPTD)
-fit <- lmFit(eset, design)
-fit <- eBayes(fit)
-topTable(fit, coef="ControlvssPTD", sort = "logFC"，adjust="BH")
-head(exprs(eset),10)
-
-```
 ```{r}
-T1_Control_vs_sPTD=as.matrix(cbind(control_T2,sPTD_T2))
+#make DE analysis between control and sPTD at the second time point
+T2_Control_vs_sPTD=as.matrix(cbind(control_T2,sPTD_T2))
 M1_anno_Control<-data.frame(Sample_id =colnames(control_T2),Group='Control')
 M1_anno_sPTD<-data.frame(Sample_id =colnames(sPTD_T2),Group='sPTD')
 M1_anno<-rbind(M1_anno_Control,M1_anno_sPTD)
@@ -78,14 +63,15 @@ colnames(design) <- c("Control","ControlvssPTD")
 eset <- ExpressionSet(assayData=T1_Control_vs_sPTD)
 fit <- lmFit(eset, design)
 fit <- eBayes(fit)
-sPTD_top100_T2<-topTable(fit, coef="ControlvssPTD", sort = "logFC"，number=183, adjust="BH")
+sPTD_top100_T2<-topTable(fit, coef="ControlvssPTD", sort = "logFC"，number=145, adjust="BH")
+#filter our the p value that hihger than 0.05
 sPTD_top100_T2=sPTD_top100_T2[sPTD_top100_T2$P.Value<0.05,]
-sPTD_top100_T2<-rownames(sPTD_top100_T2)
-sPTD_top100_T2
+sPTD_data=rownames(sPTD_top100_T2)
 ```
 
 ```{r}
-T1_Control_vs_PPROM=as.matrix(cbind(control_T2,PPROM_T2))
+#make DE anaylysis between control and PPROM at the second time point 
+T2_Control_vs_PPROM=as.matrix(cbind(control_T2,PPROM_T2))
 M1_anno_Control<-data.frame(Sample_id =colnames(control_T2),Group='Control')
 M1_anno_PPROM<-data.frame(Sample_id =colnames(PPROM_T2),Group='PPROM')
 M1_anno<-rbind(M1_anno_Control,M1_anno_PPROM)
@@ -96,7 +82,8 @@ colnames(design) <- c("Control","ControlvsPPROM")
 eset <- ExpressionSet(assayData=T1_Control_vs_PPROM)
 fit <- lmFit(eset, design)
 fit <- eBayes(fit)
-PPROM_data=topTable(fit, coef="ControlvsPPROM", sort = "logFC",number=150,adjust='BH',confint = 0.95)
+PPROM_data=topTable(fit, coef="ControlvsPPROM", sort = "logFC",number=143,adjust='BH',confint = 0.95)
+#filter our the p value that hihger than 0.05
 PPROM_data=PPROM_data[PPROM_data$P.Value<0.05,]
 PPROM_data=rownames(PPROM_data)
 
@@ -107,14 +94,18 @@ testset=esetSC2[,anoSC21[anoSC21['Train']=='0'][1:304]]
 ```
 
 ```{r}
-
-control_T2[PPROM_data,]
-sPTD_T2[PPROM_data,]
-testset[PPROM_data,]
-write.table(control_T2[PPROM_data,],'control_data_PPROM.csv',sep=',')
-write.table(PPROM_T2[PPROM_data,],'disease_data_PPROM.csv',sep=',')
-write.table(testset[PPROM_data,],'test_set_data_PPROM.csv',sep=',')
+#wirte out result
+write.table(control_T1[PPROM_data,],'control_PPROM_data_TOP100_T2.csv',sep=',')
+write.table(PPROM_T1[PPROM_data,],'disease_PPROM_data_TOP100_T2.csv',sep=',')
+write.table(testset[PPROM_data,],'test_set_PPROM_data_TOP100_T2.csv',sep=',')
 ```
+```{r}
+#wirte out result
+write.table(control_T1[sPTD_data,],'control_sPTD_data_TOP100_T2.csv',sep=',')
+write.table(sPTD_T1[sPTD_data,],'disease_sPTD_data_TOP100_T2.csv',sep=',')
+write.table(testset[sPTD_data,],'test_set_sPTD_data_TOP100_T.csv',sep=',')
+```
+
 
 
 
