@@ -2,7 +2,14 @@
 Developed prediction models on whole blood gene expression data collected from pregnant women to determine the risk preterm birth.
 ## Prerequisites
 python3+R+Matlab
+## Data Pre-Process
+### Differential Expression:
+DE-analysis.Rmd
+### K-cluster:
 
+## Train the models
+### Random Forest:
+### Alex-Net:
 ## contributors
 CHENGJIN JIN;
 CHENGQIAN CUI;
